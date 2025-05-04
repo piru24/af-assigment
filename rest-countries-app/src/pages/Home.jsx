@@ -1,5 +1,5 @@
 // Home.js
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useCountries from "../hooks/useCountries";
 import CountryDetail from "../components/CountryDetail";
 import CountryList from "../components/CountryList";
@@ -47,23 +47,49 @@ function Pagination({ total, perPage, page, setPage }) {
 }
 
 function Home() {
-  const { countries, loading, setCountries } = useCountries();
+  const { countries, loading } = useCountries();
   const [selectedCode, setSelectedCode] = useState(null);
+
+  // --- New State for Search and Filter ---
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
 
   // Pagination state
   const [page, setPage] = useState(1);
   const perPage = 18;
-  const start = (page - 1) * perPage;
-  const currentCountries = countries.slice(start, start + perPage);
 
+  // --- Filtering and Searching Logic ---
+  const filteredCountries = useMemo(() => {
+    let result = countries;
+    if (selectedRegion) {
+      result = result.filter(
+        (c) => c.region && c.region.toLowerCase() === selectedRegion.toLowerCase()
+      );
+    }
+    if (searchQuery) {
+      result = result.filter(
+        (c) =>
+          c.name &&
+          c.name.common &&
+          c.name.common.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return result;
+  }, [countries, searchQuery, selectedRegion]);
+
+  // Paginate after filtering
+  const start = (page - 1) * perPage;
+  const currentCountries = filteredCountries.slice(start, start + perPage);
+
+  // --- Handlers ---
   const handleSearch = (query) => {
+    setSearchQuery(query);
     setPage(1);
-    // ...your fetch logic
   };
 
   const handleFilter = (region) => {
+    setSelectedRegion(region);
     setPage(1);
-    // ...your fetch logic
   };
 
   if (loading)
@@ -99,7 +125,7 @@ function Home() {
             <>
               <CountryList countries={currentCountries} onSelect={setSelectedCode} />
               <Pagination
-                total={countries.length}
+                total={filteredCountries.length}
                 perPage={perPage}
                 page={page}
                 setPage={setPage}
