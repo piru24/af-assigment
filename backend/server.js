@@ -10,7 +10,7 @@ const app = express();
 
 app.use(cookieParser()); 
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: "http://localhost:5173",
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -25,8 +25,9 @@ mongoose
 app.use('/api/auth', require('./routes/userRoutes'));
 app.use('/api/favorites', require('./routes/favoriteRoutes'));
 
-
-
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'This is a GET API response' });
+});
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
